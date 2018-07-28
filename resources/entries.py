@@ -35,7 +35,6 @@ class EntryList(Resource):
     def post(self):
         """Adds a new entry"""
         kwargs = self.reqparse.parse_args()
-
         token = request.headers['x-access-token']
         data = jwt.decode(token, config.Config.SECRET_KEY)
         user_id = data['id']
