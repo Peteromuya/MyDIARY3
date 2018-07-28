@@ -80,10 +80,9 @@ class Entries(Resource):
 
     def put(self, user_id):
         """Update a particular entry"""
-
         token = request.headers['x-access-token']
         data = jwt.decode(token, config.Config.SECRET_KEY)
-        driver_id = data['id']
+        user_id = data['id']
 
         kwargs = self.reqparse.parse_args()
         token = request.headers['x-access-token']
