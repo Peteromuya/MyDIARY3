@@ -11,7 +11,7 @@ import psycopg2
 
 import config
 from os import getenv
-
+  
 db = config.TestingConfig.db
 
 
