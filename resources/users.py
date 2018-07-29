@@ -1,16 +1,14 @@
 """Leads to the endpoints derived from manipulation of user information"""
-import datetime
-
-import psycopg2
+import os
 from flask import Blueprint, jsonify, make_response
 from flask_restful import Resource, Api, reqparse, inputs, marshal
 
 from werkzeug.security import check_password_hash
 import jwt
+import datetime
 
 import config
 import models
-from models import db
 from .auth import admin_required
 
 
@@ -58,7 +56,7 @@ class Signup(Resource):
     def post(self):
         """Register a new user"""
         kwargs = self.reqparse.parse_args()
-        x= models.all_users()
+        x = models.all_users
         for user_id in models.all_users:
             if models.all_users.get(user_id)["email"] == kwargs.get('email'):
                 return jsonify({"message": "user with that email already exists"})
@@ -95,36 +93,26 @@ class Login(Resource):
 
     def post(self):
         """login a user"""
-        kwargs = self.reqparse.parse_args()
-        for user_id in models.all_users:
-                if models.all_users.get(user_id)["email"] == kwargs.get('email') and \
-                    models.all_users.get(user_id)["password"] == kwargs.get('password'):
-                    return make_response(jsonify({"message" : "you have been successfully logged in"}), 200)
-                return make_response(jsonify({"message" : "invalid email address or password", "user": models.all_users.get(user_id)["email"]}), 401)
+        try:
+            # kwargs = self.reqparse.parse_args()
+            # db_connection = psycopg2.connect(db)
+            # db_cursor = db_connection.cursor()
+            # db_cursor.execute("SELECT * FROM users WHERE email=%s", (kwargs.get("email"),))
+            # row = db_cursor.fetchall()
+            # db_connection.close()
+            if check_password_hash(kwargs.get("password")) == True:
+                token = jwt.encode({
+                    'id' : user.id,
+                    'usertype' : user,
+                    'exp' : datetime.datetime.utcnow() + datetime.timedelta(weeks=3)},
+                                    config.Config.SECRET_KEY)
 
-
-
-        """login a user by providing a token"""
-        kwargs = self.reqparse.parse_args()
-        email = kwargs.get('email')
-        password = kwargs.get('password')
-        
-        user = ()
-        if user is None: # deliberately ambigous
+                return make_response(jsonify({
+                    "message" : "successfully logged in",
+                    "token" : token.decode('UTF-8')}), 200)
             return make_response(jsonify({"message" : "invalid email address or password"}), 400)
-
-        if check_password_hash(user.password, password):
-            token = jwt.encode({
-                'id' : user.id,
-                'admin' : user.admin,
-                'exp' : datetime.datetime.utcnow() + datetime.timedelta(weeks=2)},
-                               config.Config.SECRET_KEY)
-
-            return make_response(jsonify({
-                "message" : "success, add the token to the header as x-access-token for authentication",
-                "token" : token.decode('UTF-8')}), 200)
-
-        return make_response(jsonify({"message" : "invalid email address or password"}), 400)
+        except:
+            return make_response(jsonify({"message" : "invalid email address or password"}), 400)
 
 
 class UserList(Resource):
@@ -200,8 +188,9 @@ class User(Resource):
             'username',
             required=True,
             help='kindly provide a valid username',
+            # match anything but newline + something not whitespace + anything but newline
             type=inputs.regex(r"(.*\S.*)"),
-            location=['form', 'json'])  
+            location=['form', 'json'])  # the one that comes last is looked at  first
         self.reqparse.add_argument(
             'email',
             required=True,
