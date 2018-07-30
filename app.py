@@ -5,7 +5,7 @@ import datetime
 
 from flask import Flask
 
-from resources.entry import entries_api 
+from resources.entries import entries_api 
 from resources.users import users_api
 
 
