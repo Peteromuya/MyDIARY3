@@ -93,27 +93,32 @@ class Login(Resource):
 
     def post(self):
         """login a user"""
-        try:
-            # kwargs = self.reqparse.parse_args()
-            # db_connection = psycopg2.connect(db)
-            # db_cursor = db_connection.cursor()
-            # db_cursor.execute("SELECT * FROM users WHERE email=%s", (kwargs.get("email"),))
-            # row = db_cursor.fetchall()
-            # db_connection.close()
-            if check_password_hash(kwargs.get("password")) == True:
-                token = jwt.encode({
-                    'id' : user.id,
-                    'usertype' : user,
-                    'exp' : datetime.datetime.utcnow() + datetime.timedelta(weeks=3)},
-                                    config.Config.SECRET_KEY)
+        kwargs = self.reqparse.parse_args()
+        for user_id in models.all_users:
+            if models.all_users.get(user_id)["email"] == kwargs.get('email') and \
+                models.all_users.get(user_id)["password"] == kwargs.get('password'):
+                return make_response(jsonify({"message" : "you have been successfully logged in"}), 200)
+            return make_response(jsonify({"message" : "invalid email address or password"}), 401)
+        
+        kwargs = self.reqparse.parse_args()
+        # db_connection = psycopg2.connect(db)
+        # db_cursor = db_connection.cursor()
+        # db_cursor.execute("SELECT * FROM users WHERE email=%s", (kwargs.get("email"),))
+        # row = db_cursor.fetchall()
+        # db_connection.close()
+        
+        # if check_password_hash(**kwargs):
+        #     token = jwt.encode({
+        #         'id' : user.id,
+        #         'usertype' : user,
+        #         'exp' : datetime.datetime.utcnow() + datetime.timedelta(weeks=3)},
+        #                         config.Config.SECRET_KEY)
 
-                return make_response(jsonify({
-                    "message" : "successfully logged in",
-                    "token" : token.decode('UTF-8')}), 200)
-            return make_response(jsonify({"message" : "invalid email address or password"}), 400)
-        except:
-            return make_response(jsonify({"message" : "invalid email address or password"}), 400)
-
+        #     return make_response(jsonify({
+        #         "message" : "successfully logged in",
+        #         "token" : token.decode('UTF-8')}), 200)
+        # return make_response(jsonify({"message" : "invalid email address or password"}), 400)
+   
 
 class UserList(Resource):
     "Contains a POST method to register a new user and a GET method to get all users"
