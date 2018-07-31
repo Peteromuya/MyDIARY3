@@ -4,7 +4,8 @@ from flask import Blueprint, jsonify, make_response
 from flask_restful import Resource, Api, reqparse, inputs, marshal
 
 from werkzeug.security import check_password_hash
-import jwt
+
+
 import datetime
 
 import config
@@ -95,29 +96,23 @@ class Login(Resource):
         """login a user"""
         kwargs = self.reqparse.parse_args()
         for user_id in models.all_users:
-            if models.all_users.get(user_id)["email"] == kwargs.get('email') and \
-                models.all_users.get(user_id)["password"] == kwargs.get('password'):
-                return make_response(jsonify({"message" : "you have been successfully logged in"}), 200)
-            return make_response(jsonify({"message" : "invalid email address or password"}), 401)
-        
-        kwargs = self.reqparse.parse_args()
-        # db_connection = psycopg2.connect(db)
-        # db_cursor = db_connection.cursor()
-        # db_cursor.execute("SELECT * FROM users WHERE email=%s", (kwargs.get("email"),))
-        # row = db_cursor.fetchall()
-        # db_connection.close()
-        
-        # if check_password_hash(**kwargs):
-        #     token = jwt.encode({
-        #         'id' : user.id,
-        #         'usertype' : user,
-        #         'exp' : datetime.datetime.utcnow() + datetime.timedelta(weeks=3)},
-        #                         config.Config.SECRET_KEY)
+            if models.all_users.get(user_id)["email"] == kwargs.get("email") and \
+                check_password_hash(models.all_users.get(user_id)["password"],
+                                    kwargs.get("password")):
 
-        #     return make_response(jsonify({
-        #         "message" : "successfully logged in",
-        #         "token" : token.decode('UTF-8')}), 200)
-        # return make_response(jsonify({"message" : "invalid email address or password"}), 400)
+                token = jwt.encode({
+                    'id' : user_id,
+                    'usertype' : models.all_users.get(user_id)['usertype'],
+                    'exp' : datetime.datetime.utcnow() + datetime.timedelta(weeks=3)},
+                                   config.Config.SECRET_KEY)
+
+                return make_response(jsonify({
+                    "message" : "successfully logged in",
+                    "token" : token.decode('UTF-8')}), 200)
+        return make_response(jsonify({"message" : "invalid email address or password"}), 400)
+
+
+
    
 
 class UserList(Resource):

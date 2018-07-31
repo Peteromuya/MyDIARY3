@@ -7,7 +7,6 @@ import os
 
 import psycopg2
 from werkzeug.security import check_password_hash
-import jwt
 
 import config
 import models 

@@ -4,7 +4,7 @@ the admin_required decorator to restrict access to administrators only.
 from functools import wraps
 
 from flask import request, jsonify, make_response
-import jwt
+
 
 import config
 
