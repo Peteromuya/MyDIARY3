@@ -33,6 +33,7 @@ def insert(username,email,password):
 
 create_table()
 
+
 all_users = {}
 user_count = 1
 
