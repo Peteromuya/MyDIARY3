@@ -93,9 +93,6 @@ class Entries(Resource):
 
     def put(self, user_id):
         """Update a particular entry"""
-        token = request.headers['x-access-token']
-        data = jwt.decode(token, config.Config.SECRET_KEY)
-        user_id = data['id']
 
         kwargs = self.reqparse.parse_args()
         token = request.headers['x-access-token']
@@ -110,9 +107,7 @@ class Entries(Resource):
     def delete(self, entry_id):
         """Delete a particular entry option"""
 
-        token = request.headers['x-access-token']
-        data = jwt.decode(token, config.Config.SECRET_KEY)
-        user_id = data['id']
+       
 
         result = models.Entry.delete_entry(entry_id)
         if result != {"message" : "entry option does not exist"}:

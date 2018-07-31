@@ -57,7 +57,6 @@ class Signup(Resource):
     def post(self):
         """Register a new user"""
         kwargs = self.reqparse.parse_args()
-        x = models.all_users
         for user_id in models.all_users:
             if models.all_users.get(user_id)["email"] == kwargs.get('email'):
                 return jsonify({"message": "user with that email already exists"})
@@ -110,9 +109,6 @@ class Login(Resource):
                     "message" : "successfully logged in",
                     "token" : token.decode('UTF-8')}), 200)
         return make_response(jsonify({"message" : "invalid email address or password"}), 400)
-
-
-
    
 
 class UserList(Resource):
