@@ -7,9 +7,9 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
-import app
 
-app = app.create_app()
+
+app = app.create_app('config.TestingConfig')
 app.config.from_object('config.TestingConfig')
 
 

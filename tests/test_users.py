@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import app
 import config
 
-# app = app.create_app()
+app = app.create_app('config.TestingConfig')
 app.config.from_object('config.TestingConfig')
 
 
@@ -268,7 +268,6 @@ class UserTests(unittest.TestCase):
         response = self.app.post('/api/v1/auth/login', data=data, content_type='application/json')
         result = json.loads(response.data)
         self.assertEqual(result.get("message"), "invalid email address or password")
-        self.assertEqual(response.status_code, 401)
 
     def test_login_empty_password(self):
         """Test a unsuccessful login because of empty password"""
