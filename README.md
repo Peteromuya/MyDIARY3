@@ -1,5 +1,9 @@
 
 [![Coverage Status](https://coveralls.io/repos/github/Peteromuya/MyDIARY/badge.svg)](https://coveralls.io/github/Peteromuya/MyDIARY)
+[![Build Status](https://travis-ci.org/Peteromuya/MyDIARY3.svg?branch=master)](https://travis-ci.org/Peteromuya/MyDIARY3)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+
 # MyDiary
 
 MyDiary is an online journal where users can pen down their thoughts and feelings.
@@ -70,7 +74,6 @@ DELETE   /api/v1/entries/id | Delete a single entry
 To run the automated tests simply run
 
 ```
-coverage run -m unittest
 
 pytest
 
@@ -97,6 +100,9 @@ Ensure you use Productionconfig settings which have DEBUG set to False
 ## GitHub pages
 
 https://github.com/Peteromuya/Peteromuya.github.io
+
+## Heroku
+https://dashboard.heroku.com/apps/kevinn89/deploy/heroku-git
 
 ## Versioning
 
