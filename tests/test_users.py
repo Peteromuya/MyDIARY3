@@ -229,7 +229,7 @@ class UserTests(unittest.TestCase):
     def test_successful_user_deletion(self):
         """Test a successful user delete"""
         response = self.app.delete('/api/v1/users/20')
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 200)
 
     def test_deleting_non_existing_user(self):
         """Test a deleting user that does not exist"""

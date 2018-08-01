@@ -10,7 +10,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import models
-from databasesetup import db
+
 
 import config
 
@@ -65,12 +65,4 @@ class BaseTests(unittest.TestCase):
     
     def tearDown(self):
         with self.application.app_context():
-
-            models.all_users = {}
-            models.user_count = 1
-
-            models.all_diaries = {}
-            models.diary_count = 1
-
-            models.all_entries = {}
-            models.entry_count = 1
+            self.db.drop()

@@ -9,8 +9,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 
-app = app.create_app('config.TestingConfig')
-app.config.from_object('config.TestingConfig')
+
+
 
 
 
