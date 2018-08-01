@@ -9,21 +9,20 @@ from resources.entries import entries_api
 from resources.users import users_api
 
 
+
 def create_app(configuration):
     """Create flask app"""
     app = Flask(__name__)
-    app.debug = True
-    app.config['SECRET_KEY'] = 'super-secret'
-
-
-
     app.config.from_object(configuration)
     app.url_map.strict_slashes = False
 
     app.register_blueprint(users_api, url_prefix='/api/v1')
     app.register_blueprint(entries_api, url_prefix='/api/v1')
+    
 
     return app
+
+
 
 app = create_app('config.TestingConfig')
 
