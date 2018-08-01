@@ -6,7 +6,7 @@ from flasgger import Swagger
 
 from app import create_app
 
-app = create_app()
+app = create_app('config.ProductionConfig')
 swagger = Swagger(app)
 
 
