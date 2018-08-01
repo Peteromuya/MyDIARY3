@@ -1,16 +1,19 @@
 """Contains all endpoints to manipulate diary information
 """
-import datetime
 from flask import jsonify, Blueprint, make_response
 from flask_restful import Resource, Api, reqparse, inputs
-import os
 
-import psycopg2
+
 from werkzeug.security import check_password_hash
 
+import jwt
+import psycopg2
 import config
 import models 
-from .auth import admin_required
+
+
+
+from .auth import user_required, admin_required, user_id_required
 
 
 
@@ -30,18 +33,28 @@ class EntryList(Resource):
             'to-do',
             required=True,
             type=inputs.regex(r"(.*\S.*)"),
-            help='kindly provide a valid entry)',
+            help='kindly provide a valid todo)',
             location=['form', 'json'])
         super().__init__()
         
-    def post(self):
+    @user_id_required
+    def post(self, user_id):
         """Adds a new entry"""
-        args = self.reqparse.parse_args()
-        for email in models.all_entries:
-            if models.all_entries.get(email)["to-do"] == args.get('to-do'):
-                return jsonify({"message" : "entry with that id already exists"})
-        result = models.Entry.create_entry(user_id=args['user_id'], todo=args['to-do'])
-        return make_response(jsonify(result), 201)
+        kwargs = self.reqparse.parse_args()
+        user_id = str(user_id)
+
+        db_cursor = db.con()
+        db_cursor.execute("SELECT * FROM entries")
+        entry = db_cursor.fetchone()
+
+        if entry != None:
+            return make_response(jsonify({"message" : "post another entry"}), 400)
+
+        entry= kwargs.get("user_id") + kwargs.get("to-do")
+        result = models.Entry.create_entry(entry=entry,
+                                         user_id=user_id)
+        return result
+
 
    
     def get(self):
@@ -64,7 +77,7 @@ class Entries(Resource):
             help='kindly provide a valid id',
             location=['form', 'json'])
         self.reqparse.add_argument(
-            'entry',
+            'to-do',
             required=True,
             type=inputs.regex(r"(.*\S.*)"),
             help='kindly provide a valid entry)',
@@ -91,23 +104,25 @@ class Entries(Resource):
             return make_response(jsonify(result), 200)
         return make_response(jsonify(result), 404)
 
-    def put(self, user_id):
+    @user_id_required
+    def put(self, entry_id, user_id):
         """Update a particular entry"""
-
         kwargs = self.reqparse.parse_args()
-        token = request.headers['x-access-token']
-        data = jwt.decode(token, config.Config.SECRET_KEY)
-        entry_id = data['id']
-        
-        result = models.Entry.update_entries(user_id, **kwargs)
-        if result != {"message" : "entry does not exist"}:
-            return make_response(jsonify(result), 200)
-        return make_response(jsonify(result), 404)
 
+        user_id = user_id
+        db_cursor = db.con()
+        db_cursor.execute("SELECT * FROM entries WHERE entry_id=%s", (entry_id,))
+        entry = db_cursor.fetchall()
+
+        if entry == []:
+            return make_response(jsonify({"message" : "entry does not exist"}), 404)
+
+        result = models.Entry.update_entry(entry_id=entry_id,
+                                         entry=entry,
+                                         user_id=user_id)
+        return result
     def delete(self, entry_id):
         """Delete a particular entry option"""
-
-       
 
         result = models.Entry.delete_entry(entry_id)
         if result != {"message" : "entry option does not exist"}:
