@@ -4,56 +4,41 @@
 
 import datetime
 
-from flask import make_response, jsonify
+from flask import make_response, jsonify, current_app
 from werkzeug.security import generate_password_hash
-import psycopg2
+
 
 
 import config
-from os import getenv
+
   
-db = config.TestingConfig.db
-
-
-def create_table():
-    conn=psycopg2.connect("dbname='Database9' user='postgres' password='0725401106' host='localhost' port='5435'")
-    cur=conn.cursor()
-    cur.execute("CREATE TABLE IF NOT EXISTS users (username TEXT, password TEXT, admin TEXT)")
-    cur.execute("CREATE TABLE IF NOT EXISTS entries (user_id INTEGER, entry TEXT, date TEXT)")
-    conn.commit()
-    conn.close()
-
-def insert(username,email,password):
-    db_connection=psycopg2.connect("dbname='Database9' user='postgres' password='0725401106' host='localhost' port='5435'")
-    db_cursor = db_connection.cursor()
-    db_cursor.execute("INSERT INTO users VALUES('%s','%s','%s')", (username,email,password))
-    # db_cursor.execute("INSERT INTO users VALUES(%s,%s,%s)", (username,email, password))
-    db_connection.commit()
-    db_connection.close()
-
-create_table()
-
-
-all_users = {}
-user_count = 1
-
-all_entries = {}
-entry_count = 1
-
+import psycopg2
+import databasesetup
     
-"""Handles data storage for Users and Diaries
-"""
 class User(object):
+    """Contains user columns and methods to add, update and delete a user"""
+
+    def __init__(self, username, email, password, admin):
+        self.username = username
+        self.email = email
+        self.password = generate_password_hash(password, method='sha256')
+        if admin == True:
+            self.admin = '1'
+        else:
+            self.admin = '0'
+
+        new_user = "INSERT INTO users (username, email, password, admin) VALUES " \
+                    "('" + self.username + "', '" + self.email + "', '" + self.password + "', '" + self.admin + "')"
+        db_cursor = db.con()
+        db_cursor.execute(new_user)
+        db.commit()
 
 
     @staticmethod
     def create_user(username, email, password, admin=False, **kwargs):
         """Creates a new user and appends his information to the all_users dictionary"""
        
-        conn=psycopg2.connect("dbname='Database9' user='postgres' password='0725401106' host='localhost' port='5435'")
-        cur=conn.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS users (username TEXT, password TEXT, admin TEXT)")
-        conn.commit()
+       
         global all_users
         global user_count
         all_users[user_count] = {"id": user_count, "username" : username,
@@ -62,107 +47,122 @@ class User(object):
         user_count += 1
         return new_user
 
-    @staticmethod
-    def update_user(user_id, username, email, password, admin=False, **kwargs):
+    @staticmethod              
+    def update_user(user_id, username, email, password, admin):
         """Updates user information"""
-        conn=psycopg2.connect("dbname='Database9' user='postgres' password='0725401106' host='localhost' port='5435'")
-        cur=conn.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS users (username TEXT, password TEXT, admin TEXT)")
-        conn.commit()
-        if user_id in all_users.keys():
-            all_users[user_id] = {"id" : user_id, "username" : username, "email" : email,
-                                  "password" : password, "admin" : admin}
-            return all_users[user_id]
-        return {"message" : "user does not exist"}
-
-    @staticmethod
-    def delete_user(user_id):
-        """Deletes a user"""
-        conn=psycopg2.connect("dbname='Database9' user='postgres' password='0725401106' host='localhost' port='5435'")
-        cur=conn.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS users (username TEXT, password TEXT, admin TEXT)")
-        conn.commit()
         try:
-            del all_users[user_id]
-            return {"message" : "user successfully deleted"}
-        except KeyError:
-            return {"message" : "user does not exist"}
+            db_cursor = db.con()
+            db_cursor.execute("UPDATE users SET username=%s, email=%s, password=%s WHERE user_id=%s",
+                                (username, email, password, user_id))
+            db.commit()
+            return make_response(jsonify({"message" : "user has been successfully updated"}), 200)
+        except:
+            return make_response(jsonify({"message" : "user does not exist"}), 400)
 
     @staticmethod
     def get_user(user_id):
         """Gets a particular user"""
-        conn=psycopg2.connect("dbname='Database9' user='postgres' password='0725401106' host='localhost' port='5435'")
-        cur=conn.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS users (username TEXT, password TEXT, admin TEXT)")
-        conn.commit()
+        db_cursor = db.con()
+        db_cursor.execute("SELECT * FROM users WHERE user_id=%s", (user_id,))
+        user = db_cursor.fetchall()
+
         if user != []:
             user=user[0]
+            info = {user[0] : {"email": user[1],
+                                "username": user[2],
+                                "admin": user[4]}}
+            return make_response(jsonify({"profile" : info}), 200)
         return make_response(jsonify({"message" : "user does not exists"}), 404)
 
 
     @staticmethod
     def get_all_users():
         """Gets all users"""
-        conn=psycopg2.connect("dbname='Database9' user='postgres' password='0725401106' host='localhost' port='5435'")
-        cur=conn.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS users (username TEXT, password TEXT, admin TEXT)")
-        conn.commit()
+        db_cursor = db.con()
+        db_cursor.execute("SELECT * FROM users")
+        users = db_cursor.fetchall()
+
         all_users = []
         for user in users:
-            return make_response(jsonify({"all users" : all_users}), 200)
+            info = {user[0] : {"email": user[1],
+                                "username": user[2],
+                                "admin": user[4]}}
+            all_users.append(info)
+        return make_response(jsonify({"All users" : all_users}), 200)
+
+class Entry():
+    """Contains entry columns and methods to add, update and delete an entry"""
 
 
-class Entry(object):
+    def __init__(self, entry, user_id):
+        self.entry = entry
+        self.user_id = user_id
+        
+        new_entry = "INSERT INTO entries (entry, user_id) VALUES " \
+                    "('" + self.entry + "', '" + self.user_id + "' )"
+        db_cursor = db.con()
+        db_cursor.execute(new_entry)
+        db.commit()
 
-    @staticmethod
-    def create_entry(user_id, todo):
-        """Creates a new date and appends this information to the all_entries dictionary"""
-        conn=psycopg2.connect("dbname='Database9' user='postgres' password='0725401106' host='localhost' port='5435'")
-        cur=conn.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS users (username TEXT, password TEXT, admin TEXT)")
-        conn.commit()
-        global all_entries
-        global entry_count
-        all_entries[entry_count] = {"id": entry_count, "to-do": todo}
-        new_entry = all_entries[entry_count]
-        entry_count += 1
-        return new_entry
+    @classmethod
+    def create_entry(cls, entry, user_id):
+        """Creates a new entry"""
 
-    @staticmethod
-    def update_entry(user_id, todo):
-        """Updates entries' dates information"""
-        conn=psycopg2.connect("dbname='Database9' user='postgres' password='0725401106' host='localhost' port='5435'")
-        cur=conn.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS users (username TEXT, password TEXT, admin TEXT)")
-        conn.commit()
-        if email in all_entries.keys():
-            all_entries[email] = {"user_idl": user_id, "date" : date, "to-do" : todo}
-            return all_entries[user_id]
-        return {"message" : "id with that entry does not exist"}
+        cls(entry, user_id)
+        return make_response(jsonify({"message" : "entry has been successfully created"}), 201)
 
     @staticmethod
-    def delete_entry(user_id):
-        """Deletes an entry"""
-        conn=psycopg2.connect("dbname='Database9' user='postgres' password='0725401106' host='localhost' port='5435'")
-        cur=conn.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS users (username TEXT, password TEXT, admin TEXT)")
-        conn.commit()
+    def update_entry(entry_id, entry, user_id):
+        """Updates entry information"""
         try:
-            del all_entries[user_id]
-            return {"message" : "entry with that id is successfully deleted"}
-        except KeyError:
-            return {"message" : "entry with that id does not exist"}
+            db_cursor = db.con()
+            db_cursor.execute("UPDATE entries SET entry=%s, user_id=%s WHERE entry_id=%s",
+                                  (entry, user_id, entry_id))
+            db.commit()
+            return make_response(jsonify({"message" : "entry has been successfully updated"}), 200)
+        except:
+            return make_response(jsonify({"message" : "entry does not exist"}), 404)
 
 
     @staticmethod
-    def get_one_entry(user_id):
+    def delete_entry(entry_id):
+        """Deletes an entry"""
+        db_cursor = db.con()
+        db_cursor.execute("SELECT * FROM entries")
+        entries = db_cursor.fetchall()
+
+        for entry in entries:
+            if entry[0] == entry_id:
+                db_cursor.execute("DELETE FROM entries WHERE entry_id=%s", (entry_id,))
+                db.commit()
+
+                return make_response(jsonify({"message" : "entry has been successfully deleted"}), 200)
+        return make_response(jsonify({"message" : "entry does not exists"}), 404)
+
+    @staticmethod
+    def get_entry(entry_id):
+        """Gets a particular entry"""
+        db_cursor = db.con()
+        db_cursor.execute("SELECT * FROM entries WHERE entry_id=%s", (entry_id,))
+        ride = db_cursor.fetchall()
+
         if entry != []:
             entry=entry[0]
-
-            return make_response(jsonify({"message" : "entry does not exists"}), 404)
-
+            info = {entry[0] : {"entry": entry[1],
+                                "user_id": entry[2]}}
+            return make_response(jsonify({"entry" : info}), 200)
+        return make_response(jsonify({"message" : "entry does not exists"}), 404)
+        
     @staticmethod
-    def get_all_entries(user_id, todo):
+    def get_all_entries():
+        """Gets all entries"""
+        db_cursor = db.con()
+        db_cursor.execute("SELECT * FROM entries")
+        rides = db_cursor.fetchall()
         all_entries = []
         for entry in entries:
-            return make_response(jsonify({"All entries" : all_entries}), 200)
+            info = {entry[0] : {"entry": entry[1],
+                                "user_id": entry[2]}}
+            all_entries.append(info)
+        return make_response(jsonify({"All entries" : all_entries}), 200)
+
