@@ -19,4 +19,9 @@ class TestingConfig(Config):
 class DevelopmentConfig(Config):
     """Contains additional config variables required during development"""
     DEBUG = True
+    db = getenv('development_db')
+
+class ProductionConfig(Config):
+    """Contains additional config variables required during production"""
+    DEBUG = True
     db = getenv('production_db')
