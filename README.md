@@ -104,7 +104,7 @@ Ensure you use Productionconfig settings which have DEBUG set to False
 https://github.com/Peteromuya/Peteromuya.github.io
 
 ## Heroku
-https://dashboard.heroku.com/apps/kevinn89/deploy/heroku-git
+https://kevinn89.herokuapp.com/
 
 ## Versioning
 
