@@ -1,20 +1,14 @@
-"""Contains all endpoints to manipulate diary information
+"""Contains all endpoints to manipulate ride information
 """
-from flask import jsonify, Blueprint, make_response
-from flask_restful import Resource, Api, reqparse, inputs
-
-
-from werkzeug.security import check_password_hash
-
+from flask import request, jsonify, Blueprint, make_response
+from flask_restful import Resource, Api, reqparse
 import jwt
 import psycopg2
+# pylint: disable=W0612
+
+import models
 import config
-import models 
-
-
-
 from .auth import user_required, admin_required, user_id_required
-
 
 
 class EntryList(Resource):
@@ -30,13 +24,17 @@ class EntryList(Resource):
             help='kindly provide a valid id',
             location=['form', 'json'])
         self.reqparse.add_argument(
-            'to-do',
+            'entry',
             required=True,
             type=inputs.regex(r"(.*\S.*)"),
-            help='kindly provide a valid todo)',
+            help='kindly provide a valid entry)',
             location=['form', 'json'])
+        self.reqparse.add_argument(
+            'date',
+            required=True,
+            location=['form', 'json'])
+
         super().__init__()
-        
     @user_id_required
     def post(self, user_id):
         """Adds a new entry"""
@@ -44,30 +42,27 @@ class EntryList(Resource):
         user_id = str(user_id)
 
         db_cursor = db.con()
-        db_cursor.execute("SELECT * FROM entries")
+        db_cursor.execute("SELECT * FROM entries WHERE user_id=%s and date=%s"
+                         (user_id, kwargs.get))
         entry = db_cursor.fetchone()
 
         if entry != None:
-            return make_response(jsonify({"message" : "post another entry"}), 400)
+            return make_response(jsonify({"message" : "another entry will be posted at that time"}), 400)
 
-        entry= kwargs.get("user_id") + kwargs.get("to-do")
         result = models.Entry.create_entry(entry=entry,
-                                         user_id=user_id)
+                                         user_id=user_id,
+                                         date=kwargs.get("date"))
         return result
 
-
-   
     def get(self):
-        """Gets all entries."""
-        return make_response(jsonify(models.all_entries), 200)
+        """Gets all entries"""
+        return models.Entry.get_all_entries()
 
 
+class Entry(Resource):
+    """Contains GET, PUT and DELETE methods for manipulating a single entry"""
 
-class Entries(Resource):
-    """Contains GET, PUT and DELETE methods for manipulating a single entry option"""
 
-
-   
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument(
@@ -77,30 +72,30 @@ class Entries(Resource):
             help='kindly provide a valid id',
             location=['form', 'json'])
         self.reqparse.add_argument(
-            'to-do',
+            'entry',
             required=True,
             type=inputs.regex(r"(.*\S.*)"),
             help='kindly provide a valid entry)',
             location=['form', 'json'])
+        self.reqparse.add_argument(
+            'date',
+            required=True,
+            location=['form', 'json'])
+
         super().__init__()
 
     def get(self, entry_id):
-        """Get a particular entry_option"""
-        try:
-            diary = models.all_entries[entry_id]
-            return make_response(jsonify(diary), 200)
-        except KeyError:
-            return make_response(jsonify({"message" : "entry option does not exist"}), 404)
+        """Get a particular entry"""
+        return models.Entry.get_entry(entry_id)
 
-         
-    def post(self, entry_id):
+
+    @user_id_required
+    def post(self, entry_id, user_id):
         """start a particular entry"""
-        token = request.headers['x-access-token']
-        data = jwt.decode(token, config.Config.SECRET_KEY)
-        user_id = data['id']
+        user_id = user_id
 
         result = models.Entry.start_entry(entry_id=entry_id, user_id=user_id)
-        if result == {"message" : "entry is successful"}:
+        if result == {"message" : "entry successful"}:
             return make_response(jsonify(result), 200)
         return make_response(jsonify(result), 404)
 
@@ -119,20 +114,19 @@ class Entries(Resource):
 
         result = models.Entry.update_entry(entry_id=entry_id,
                                          entry=entry,
-                                         user_id=user_id)
+                                         user_id=user_id,
+                                         date=kwargs.get("date"))
         return result
+
+    @user_required
     def delete(self, entry_id):
-        """Delete a particular entry option"""
-
+        """Delete a particular entry"""
         result = models.Entry.delete_entry(entry_id)
-        if result != {"message" : "entry option does not exist"}:
-            return make_response(jsonify(result), 200)
-        return make_response(jsonify(result), 404)
+        return result
 
-entries_api = Blueprint('resources.entries', __name__)
-api = Api(entries_api) # create the API
+
+entries_api = Blueprint('resources.entriess', __name__)
+api = Api(entries_api)
 api.add_resource(EntryList, '/entries', endpoint='entries')
-api.add_resource(Entries, '/entries/<int:entry_id>', endpoint='entry')
-
-
+api.add_resource(Entry, '/entries/<int:entry_id>', endpoint='entry')
 
