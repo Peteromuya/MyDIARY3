@@ -7,7 +7,7 @@ from flask import Flask
 
 from resources.entries import entries_api 
 from resources.users import users_api
-
+from setup import db
 
 
 def create_app(configuration):
@@ -18,6 +18,7 @@ def create_app(configuration):
 
     app.register_blueprint(users_api, url_prefix='/api/v1')
     app.register_blueprint(entries_api, url_prefix='/api/v1')
+    db.tables_creation()
     
 
     return app
