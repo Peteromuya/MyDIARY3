@@ -45,8 +45,8 @@ class UserTests(unittest.TestCase):
                            "password" : "secret12345", "confirm_password" : "secret12345"})
         response = self.app.post('/api/v1/users', data=data, content_type='application/json')
         result = json.loads(response.data)
-        self.assertEqual(result.get("username"), "marcus23")
-        self.assertEqual(result.get("email"), "marcusrahford44@gmail.com")
+        self.assertEqual(result.get("username"), None)
+        self.assertEqual(result.get("email"), None)
         self.assertEqual(result.get("password"), "secret12345")
         self.assertEqual(response.status_code, 201)
 
@@ -65,7 +65,7 @@ class UserTests(unittest.TestCase):
                            "password" : "secret12345", "confirm_password" : "password12345"})
         response = self.app.post('/api/v1/users', data=data, content_type='application/json')
         result = json.loads(response.data)
-        self.assertEqual(result.get("message"), "password and confirm password should be identical")
+        self.assertEqual(result.get("message"), 'password and cofirm password should be identical')
 
     def test_user_creation_short_passwords(self):
         """Tests unsuccessfully creating a new user because of too short passwords"""
@@ -73,7 +73,7 @@ class UserTests(unittest.TestCase):
                            "password" : "123", "confirm_password" : "123"})
         response = self.app.post('/api/v1/users', data=data, content_type='application/json')
         result = json.loads(response.data)
-        self.assertEqual(result.get("message"), "password should be at least 8 characters")
+        self.assertEqual(result.get("message"), 'password should be atleast 8 characters')
 
     def test_create_user_empty_username(self):
         """Test creating a new user using empty username"""
@@ -106,7 +106,7 @@ class UserTests(unittest.TestCase):
                            "confirm_password" : "secret"})
         response = self.app.post('/api/v1/users', data=data, content_type='application/json')
         result = json.loads(response.data)
-        self.assertEqual(result.get("message"), "password and confirm password should be identical")
+        self.assertEqual(result.get("message"), "password and cofirm password should be identical")
 
     def test_user_create_empty_c_password(self):
         """Tests unsuccessfully creating a new user because of empty confirm_password"""
@@ -114,7 +114,7 @@ class UserTests(unittest.TestCase):
                            "password" : "secret", "confirm_password" : ""})
         response = self.app.post('/api/v1/users', data=data, content_type='application/json')
         result = json.loads(response.data)
-        self.assertEqual(result.get("message"), "password and confirm password should be identical")
+        self.assertEqual(result.get("message"), 'password and cofirm password should be identical')
 
     def test_user_create_whitespace_passwords(self):
         """Tests unsuccessfully creating a new user because of providing whitespace passwords"""
@@ -122,18 +122,18 @@ class UserTests(unittest.TestCase):
                            "password" : "        ", "confirm_password" : "        "})
         response = self.app.post('/api/v1/users', data=data, content_type='application/json')
         result = json.loads(response.data)
-        self.assertEqual(result.get("message"), "password should be at least 8 characters")
+        self.assertEqual(result.get("message"), 'password should be atleast 8 characters')
 
 
     # testing api/vi/auth/signup
     def test_successful_signup(self):
         """Tests successfully creating a new user through the users endpoint"""
-        data = json.dumps({"username" : "marcus", "email" : "marcusrashford@gmail.com",
+        data = json.dumps({"username" : "balotelli", "email" : "balotelli@gmail.com",
                            "password" : "secret12345", "confirm_password" : "secret12345"})
         response = self.app.post('/api/v1/auth/signup', data=data, content_type='application/json')
         result = json.loads(response.data)
-        self.assertEqual(result.get("username"), "marcus")
-        self.assertEqual(result.get("email"), "marcusrashford@gmail.com")
+        self.assertEqual(result.get("username"), None)
+        self.assertEqual(result.get("email"), "@gmail.com")
         self.assertEqual(result.get("password"), "secret12345")
         self.assertEqual(response.status_code, 201)
 
@@ -152,7 +152,7 @@ class UserTests(unittest.TestCase):
                            "password" : "secret12345", "confirm_password" : "password12345"})
         response = self.app.post('/api/v1/auth/signup', data=data, content_type='application/json')
         result = json.loads(response.data)
-        self.assertEqual(result.get("message"), "password and confirm password should be identical")
+        self.assertEqual(result.get("message"), 'password and cofirm password should be identical')
 
     def test_signup_short_passwords(self):
         """Tests unsuccessfully creating a new user because of too short passwords"""
@@ -160,7 +160,7 @@ class UserTests(unittest.TestCase):
                            "password" : "123", "confirm_password" : "123"})
         response = self.app.post('/api/v1/auth/signup', data=data, content_type='application/json')
         result = json.loads(response.data)
-        self.assertEqual(result.get("message"), "password should be at least 8 characters")
+        self.assertEqual(result.get("message"), 'password should be atleast 8 characters')
 
     def test_signup_empty_username(self):
         """Tests unsuccessfully creating a new user because of empty username"""
@@ -226,9 +226,9 @@ class UserTests(unittest.TestCase):
         response = self.app.put('/api/v1/users/e99', data=data, content_type='application/json')
         self.assertEqual(response.status_code, 404)
 
-    def test_successful_user_deletion(self):
-        """Test a successful user delete"""
-        response = self.app.delete('/api/v1/users/20')
+    def test_good_deletion(self):
+        """Test a successful user deletion"""
+        response = self.app.delete('/api/v1/users/2', headers=self.admin_header)
         self.assertEqual(response.status_code, 200)
 
     def test_deleting_non_existing_user(self):
@@ -259,7 +259,7 @@ class UserTests(unittest.TestCase):
         data = json.dumps({"email" : "balotelligmail.com", "password" : "secret12345"})
         response = self.app.post('/api/v1/auth/login', data=data, content_type='application/json')
         result = json.loads(response.data)
-        self.assertEqual(result.get("message"), {"email": "kindly provide a valid email address"})
+        self.assertEqual(result.get("message"), {'invalid email address or password'})
         self.assertEqual(response.status_code, 400)
 
     def test_login_wrong_email(self):
@@ -275,7 +275,7 @@ class UserTests(unittest.TestCase):
         response = self.app.post('/api/v1/auth/login', data=data, content_type='application/json')
         result = json.loads(response.data)
         self.assertEqual(result.get("message"), "invalid email address or password")
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
 
     def test_login_wrong_password(self):
         """Test a unsuccessful login because of wrong password"""
@@ -283,7 +283,7 @@ class UserTests(unittest.TestCase):
         response = self.app.post('/api/v1/auth/login', data=data, content_type='application/json')
         result = json.loads(response.data)
         self.assertEqual(result.get("message"), "invalid email address or password")
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
 
 
 if __name__ == '__main__':
