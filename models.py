@@ -10,40 +10,8 @@ from werkzeug.security import generate_password_hash
 import config
 
 import psycopg2
+from setup import db
 
-conn=psycopg2.connect("dbname='challenge3' user='postgres' password='0725401106' host='localhost' port='5435'")
-cur = conn.cursor()
-
-all_users = {}
-user_count = 1
-
-all_entries = {}
-entry_count = 1
-
-class MyDatabase:
-    """My Diary Database methods"""
-    def __init__(self):
-        conn=psycopg2.connect("dbname='challenge3' user='postgres' password='0725401106' host='localhost' port='5435'")
-        cur=conn.cursor()
-
-
-    def create_table():
-        cur.execute("CREATE TABLE IF NOT EXISTS users (username VARCHAR, password VARCHAR, email TEXT)")
-        cur.execute("CREATE TABLE IF NOT EXISTS entries (user_id INTEGER, entry TEXT, date TEXT)")
-        conn.commit()
-        conn.close()
-
-    def insert(username,email,password):
-        db_cursor.execute("INSERT INTO users VALUES('%s','%s','%s')", (username,email,password))
-        db_cursor.execute("INSERT INTO entries VALUES('%s','%s','%s')", (user_id,entry,date))
-        db_connection.commit()
-        db_connection.close()
-
-
-
-    def create_con(self):
-        conn=psycopg2.connect("dbname='challenge3' user='postgres' password='0725401106' host='localhost' port='5435'")
-        return conn
 
 
 class User():
@@ -84,7 +52,7 @@ class User():
         """Updates user information"""
         try:
             db_cursor = db.con()
-            db_cursor.execute("UPDATE users SET username=%s, email=%s, password=%s, admin=%s WHERE user_id=%s",
+            db_cursor.execute("UPDATE users SET username=%s, email=%s, password=%s, admin=%s",
                                 (username, email, password, admin, user_id))
             db.commit()
             return make_response(jsonify({"message" : "user has been successfully updated"}), 200)
