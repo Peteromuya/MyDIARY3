@@ -3,12 +3,17 @@ python:
   - "3.6.4"
   
 # command to install dependencies
+
+before_script:
+- psql -c 'create database challenge3;' -U postgres
+
+before_install:
+- pip install pytest pytest-cov
+- pip install coveralls
 install:
-  - "pip install -r requirements.txt"
-  - pip install coveralls
+  - pip install -r requirements.txt
+  
 script:
-  - python -m pytest --cov-report term-missing --cov=resources
+  - pytest
 after_success:
-  - coveralls
-notifications:
-  email: false
+  - coverage run -m pytest
