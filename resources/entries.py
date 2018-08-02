@@ -1,4 +1,4 @@
-"""Contains all endpoints to manipulate ride information
+"""Contains all endpoints to manipulate entry information
 """
 from flask import request, jsonify, Blueprint, make_response
 from flask_restful import Resource, Api, reqparse
@@ -9,7 +9,7 @@ import psycopg2
 import models
 import config
 from .auth import user_required, admin_required, user_id_required
-
+from setup import db
 
 class EntryList(Resource):
     """Contains GET and POST methods"""
@@ -26,7 +26,6 @@ class EntryList(Resource):
         self.reqparse.add_argument(
             'entry',
             required=True,
-            type=inputs.regex(r"(.*\S.*)"),
             help='kindly provide a valid entry)',
             location=['form', 'json'])
         self.reqparse.add_argument(
@@ -47,7 +46,7 @@ class EntryList(Resource):
         entry = db_cursor.fetchone()
 
         if entry != None:
-            return make_response(jsonify({"message" : "another entry will be posted at that time"}), 400)
+            return make_response(jsonify({"message" : "another entry will be posted"}), 400)
 
         result = models.Entry.create_entry(entry=entry,
                                          user_id=user_id,
