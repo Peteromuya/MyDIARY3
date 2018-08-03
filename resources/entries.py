@@ -81,6 +81,7 @@ class Entry(Resource):
             location=['form', 'json'])
 
         super().__init__()
+    
 
     def get(self, entry_id):
         """Get a particular entry"""
