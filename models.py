@@ -32,6 +32,7 @@ class User():
         db_cursor = db.con()
         db_cursor.execute(new_user)
         db.commit()
+        
 
     @staticmethod
     def create_user(username, email, password, admin=False, **kwargs):
@@ -105,20 +106,20 @@ class Entry():
     """Contains entry columns and methods to add, update and delete an entry"""
 
 
-    def __init__(self, entry, user_id, date):
+    def __init__(self, entry, user_id):
         self.entry = entry
         self.user_id = user_id
-        self.date = date
+        
 
 
-        new_entry = "INSERT INTO entries (entry, user_id, date) VALUES " \
-                    "('" + self.entry + "', '" + self.user_id + "', '" + self.date + "' )"
+        new_entry = "INSERT INTO entries (entry, user_id) VALUES " \
+                    "('" + self.entry + "', '" + self.user_id + "')"
         db_cursor = db.con()
         db_cursor.execute(new_entry)
         db.commit()
 
     @classmethod
-    def create_entry(cls, entry, user_id, date):
+    def create_entry(cls, entry, user_id):
         """Creates a new entry"""
 
         cls(entry, user_id, date)
