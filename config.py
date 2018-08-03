@@ -6,7 +6,7 @@ class Config(object):
     """Base class with all the constant config variables"""
     DEBUG = False
     TESTING = False
-    SECRET_KEY = getenv("SECRET_KEY")
+    SECRET_KEY = "SECRET_KEY"
 
 
 class TestingConfig(Config):
