@@ -104,10 +104,6 @@ class Login(Resource):
             db_cursor.execute("SELECT * FROM users WHERE email=%s", (kwargs.get("email"),))
             user = db_cursor.fetchone()
             if check_password_hash(user[3], kwargs.get("password")) == True:
-                # print(user[0])
-                # print(user[4])
-                # print(config.Config.SECRET_KEY)
-                # print(datetime.datetime.utcnow() + datetime.timedelta(weeks=5))
 
                 token = jwt.encode({
                     'id' : user[0],
