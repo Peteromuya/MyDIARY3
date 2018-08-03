@@ -39,15 +39,14 @@ class UserTests(unittest.TestCase):
         response = self.app.get('/api/v1/users')
         self.assertEqual(response.status_code, 200)
 
-    def test_successful_user_creation(self):
-        """Tests successfully creating a new user through the users endpoint"""
-        data = json.dumps({"username" : "marcus23", "email" : "marcusrahford44@gmail.com",
-                           "password" : "secret12345", "confirm_password" : "secret12345"})
-        response = self.app.post('/api/v1/users', data=data, content_type='application/json')
-        result = json.loads(response.data)
-        self.assertEqual(result.get("username"), None)
-        self.assertEqual(result.get("email"), None)
-        self.assertEqual(result.get("password"), "secret12345")
+    def test_good_user_creation(self):
+        """Tests successfully creating a new user"""
+        data = json.dumps({
+            "username" : "romeo", "email" : "romeo@gmail.com",
+            "password" : "secret12345", "confirm_password" : "secret12345", "admin" : True})
+        response = self.app.post(
+            '/api/v1/users', data=data,
+            content_type='application/json')
         self.assertEqual(response.status_code, 201)
 
     def test_user_creation_existing_email(self):
@@ -126,15 +125,12 @@ class UserTests(unittest.TestCase):
 
 
     # testing api/vi/auth/signup
-    def test_successful_signup(self):
-        """Tests successfully creating a new user through the users endpoint"""
-        data = json.dumps({"username" : "balotelli", "email" : "balotelli@gmail.com",
-                           "password" : "secret12345", "confirm_password" : "secret12345"})
+    def test_good_signup(self):
+        """Tests successfully signing up"""
+        data = json.dumps({
+            "username" : "charles", "email" : "charles@gmail.com",
+            "password" : "secret12345", "confirm_password" : "secret12345"})
         response = self.app.post('/api/v1/auth/signup', data=data, content_type='application/json')
-        result = json.loads(response.data)
-        self.assertEqual(result.get("username"), None)
-        self.assertEqual(result.get("email"), "@gmail.com")
-        self.assertEqual(result.get("password"), "secret12345")
         self.assertEqual(response.status_code, 201)
 
     def test_signup_existing_email(self):
@@ -228,8 +224,9 @@ class UserTests(unittest.TestCase):
 
     def test_good_deletion(self):
         """Test a successful user deletion"""
-        response = self.app.delete('/api/v1/users/2', headers=self.admin_header)
+        response = self.app.delete('/api/v1/users/2')
         self.assertEqual(response.status_code, 200)
+    
 
     def test_deleting_non_existing_user(self):
         """Test a deleting user that does not exist"""
@@ -250,7 +247,7 @@ class UserTests(unittest.TestCase):
         result = json.loads(response.data)
         
 
-        self.assertEqual(result.get("message"), "you have been successfully logged in")
+        self.assertEqual(result.get("message"), 'successfully logged in')
         self.assertEqual(response.status_code, 200)
 
 
@@ -259,7 +256,7 @@ class UserTests(unittest.TestCase):
         data = json.dumps({"email" : "balotelligmail.com", "password" : "secret12345"})
         response = self.app.post('/api/v1/auth/login', data=data, content_type='application/json')
         result = json.loads(response.data)
-        self.assertEqual(result.get("message"), {'invalid email address or password'})
+        self.assertEqual(result.get("message"), 'invalid email address or password')
         self.assertEqual(response.status_code, 400)
 
     def test_login_wrong_email(self):
@@ -267,14 +264,14 @@ class UserTests(unittest.TestCase):
         data = json.dumps({"email" : "alotelli@gmail.com", "password" : "secret12345"})
         response = self.app.post('/api/v1/auth/login', data=data, content_type='application/json')
         result = json.loads(response.data)
-        self.assertEqual(result.get("message"), "invalid email address or password")
+        self.assertEqual(result.get("message"), 'invalid email address or password')
 
     def test_login_empty_password(self):
         """Test a unsuccessful login because of empty password"""
         data = json.dumps({"email" : "balotelli@gmail.com", "password" : ""})
         response = self.app.post('/api/v1/auth/login', data=data, content_type='application/json')
         result = json.loads(response.data)
-        self.assertEqual(result.get("message"), "invalid email address or password")
+        self.assertEqual(result.get("message"), 'invalid email or password')
         self.assertEqual(response.status_code, 400)
 
     def test_login_wrong_password(self):
@@ -282,7 +279,7 @@ class UserTests(unittest.TestCase):
         data = json.dumps({"email" : "balotelli@gmail.com", "password" : "mysecerto78"})
         response = self.app.post('/api/v1/auth/login', data=data, content_type='application/json')
         result = json.loads(response.data)
-        self.assertEqual(result.get("message"), "invalid email address or password")
+        self.assertEqual(result.get("message"), 'invalid email or password')
         self.assertEqual(response.status_code, 400)
 
 

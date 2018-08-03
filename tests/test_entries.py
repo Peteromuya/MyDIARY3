@@ -10,11 +10,7 @@ class EntryTests(unittest.TestCase):
     """Tests functionality of the API"""
 
 
-    def setUp(self):
-        self.app = app.test_client()
-        self.entry = json.dumps({"user_id" : "007"})
-        self.todo = json.dumps({"to-do" : "Going to cinema with my friends"})
-        self.existing_diary = self.app.post('/api/v1/entries', data=self.entry, content_type='application/json')
+   
         
     def test_get_all_entries(self):
         response = self.app.get('/api/v1/entries')
