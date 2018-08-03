@@ -1,5 +1,7 @@
 """Contains all endpoints to manipulate entry information
 """
+import datetime
+
 from flask import request, jsonify, Blueprint, make_response
 from flask_restful import Resource, Api, reqparse
 import jwt
@@ -8,7 +10,7 @@ import psycopg2
 
 import models
 import config
-from .auth import user_required, admin_required, user_id_required
+from .auth import user_required, user_id_required, user_admin_required
 from setup import db
 
 class EntryList(Resource):
@@ -34,23 +36,20 @@ class EntryList(Resource):
             location=['form', 'json'])
 
         super().__init__()
+
     @user_id_required
-    def post(self, user_id):
+    def post(self, user_id): 
         """Adds a new entry"""
         kwargs = self.reqparse.parse_args()
         user_id = str(user_id)
 
         db_cursor = db.con()
-        db_cursor.execute("SELECT * FROM entries WHERE user_id=%s and date=%s"
-                         (user_id, kwargs.get))
+        db_cursor.execute("SELECT * FROM entries WHERE user_id=%s and date=%s and entry=%s")
+                         
         entry = db_cursor.fetchone()
-
-        if entry != None:
-            return make_response(jsonify({"message" : "another entry will be posted"}), 400)
-
         result = models.Entry.create_entry(entry=entry,
                                          user_id=user_id,
-                                         date=kwargs.get("date"))
+                                         date=kwargs.get("date"),)
         return result
 
     def get(self):
@@ -124,7 +123,7 @@ class Entry(Resource):
         return result
 
 
-entries_api = Blueprint('resources.entriess', __name__)
+entries_api = Blueprint('resources.entries', __name__)
 api = Api(entries_api)
 api.add_resource(EntryList, '/entries', endpoint='entries')
 api.add_resource(Entry, '/entries/<int:entry_id>', endpoint='entry')

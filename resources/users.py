@@ -8,6 +8,8 @@ from flask_restful import Resource, Api, reqparse, inputs
 from werkzeug.security import check_password_hash
 import jwt
 
+from .auth import user_required, user_id_required, user_admin_required
+
 import models
 import config
 
@@ -102,28 +104,24 @@ class Login(Resource):
             db_cursor.execute("SELECT * FROM users WHERE email=%s", (kwargs.get("email"),))
             user = db_cursor.fetchone()
             if check_password_hash(user[3], kwargs.get("password")) == True:
+                # print(user[0])
+                # print(user[4])
+                # print(config.Config.SECRET_KEY)
+                # print(datetime.datetime.utcnow() + datetime.timedelta(weeks=5))
+
                 token = jwt.encode({
                     'id' : user[0],
                     'admin' : user[4],
                     'exp' : datetime.datetime.utcnow() + datetime.timedelta(weeks=5)},
                                     config.Config.SECRET_KEY)
+                print(token)
 
                 return make_response(jsonify({
                     "message" : "successfully logged in",
                     "token" : token.decode('UTF-8')}), 200)
-            return make_response(jsonify({"message" : "invalid email address or password"}), 400)
+            return make_response(jsonify({"message" : "invalid email or password"}), 400)
         except:
             return make_response(jsonify({"message" : "invalid email address or password"}), 400)
-
-            
-        # """login a user"""
-        # kwargs = self.reqparse.parse_args()
-        # for user_id in models.all_users:
-        #     if models.all_users.get(user_id)["email"] == kwargs.get('email') and \
-        #         models.all_users.get(user_id)["password"] == kwargs.get('password'):
-        #         return make_response(jsonify({"message" : "you have been successfully logged in"}), 200)
-        #     return make_response(jsonify({"message" : "invalid email address or password"}), 401)
-
 
 class UserList(Resource):
     "Contains a POST method to register a new user and a GET method to get all users"

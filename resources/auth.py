@@ -1,4 +1,4 @@
-"""Contains the user_required decorator to restrict access to authenticated users only and
+"""Contains the token_required decorator to restrict access to authenticated users only and
 the admin_required decorator to restrict access to administrators only.
 """
 from functools import wraps
@@ -7,7 +7,6 @@ from flask import request, jsonify, make_response
 import jwt
 
 import config
-
 
 
 def user_id_required(f):
@@ -26,27 +25,7 @@ def user_id_required(f):
         except:
             return make_response(jsonify({
                 "message" : "kindly provide a valid token in the header"}), 401)
-        user_id = data['id']
-        return f(user_id=user_id, *args, **kwargs)
 
-    return decorated
-
-def user_required(f):
-    """Checks for authenticated users with valid token in the header"""
-
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        """validate token provided"""
-        token = None
-
-        if 'x-access-token' in request.headers:
-            token = request.headers['x-access-token']
-
-        try:
-            data = jwt.decode(token, config.Config.SECRET_KEY) # pylint: disable=W0612
-        except:
-            return make_response(jsonify({
-                "message" : "kindly provide a valid token in the header"}), 401)
         return f(*args, **kwargs)
 
     return decorated
@@ -65,12 +44,62 @@ def admin_required(f):
 
         try:
             data = jwt.decode(token, config.Config.SECRET_KEY)
-            if data['admin'] != True:
+            if data['usertype'] != "admin":
                 return make_response(jsonify({
-                    "message" : "kindly provide a valid token in the header"}), 401)
+                    "message" : "Not authorized to perform this function as a non-admin"}), 401)
+
         except:
             return make_response(jsonify({
-                    "message" : "kindly provide a valid token in the header"}), 401)
+                "message" : "kindly provide a valid token in the header"}), 401)
+
+        return f(*args, **kwargs)
+
+    return decorated
+
+def user_required(f):
+    """Checks for authenticated users with valid token in the header"""
+
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        """validate token provided and ensures the user is authenticated"""
+        token = None
+
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+
+        try:
+            data = jwt.decode(token, config.Config.SECRET_KEY)
+            if data['usertype'] != "user":
+                return make_response(jsonify({
+                    "message" : "Not authorized to perform this function as a non-user"}), 401)
+        except:
+            return make_response(jsonify({
+                "message" : "kindly provide a valid token in the header"}), 401)
+
+        return f(*args, **kwargs)
+
+    return decorated
+
+def user_admin_required(f):
+    """Checks for authenticated user or admin with valid token in the header"""
+
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        """validate token provided and ensures the user is a user or admin"""
+        token = None
+
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+
+        try:
+            data = jwt.decode(token, config.Config.SECRET_KEY)
+            if data['usertype'] != "user" and data['usertype'] != "admin":
+                return make_response(jsonify({
+                    "message" : "Not authorized to perform this function as a non-user"}), 401)
+        except:
+            return make_response(jsonify({
+                "message" : "kindly provide a valid token in the header"}), 401)
+
         return f(*args, **kwargs)
 
     return decorated
