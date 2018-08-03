@@ -20,6 +20,7 @@ def create_app(configuration):
     app.register_blueprint(entries_api, url_prefix='/api/v1')
     db.tables_creation()
     
+    
 
     return app
 
